@@ -1,0 +1,1 @@
+select sid, serial#, username, schemaname, osuser,TO_CHAR(logon_Time,'DD-MON-YYYY HH24:MI:SS'), machine, terminal,status,MODULE,LOCKWAIT,SCHEMANAME,BLOCKING_SESSION,EVENT,WAIT_TIME from v$session where type='USER' and module like 'SQL*Plus%';

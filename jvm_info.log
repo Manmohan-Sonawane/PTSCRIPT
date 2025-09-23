@@ -1,0 +1,316 @@
+SQL> 
+SQL> ------ REGISTRY INFO ------
+SQL> 
+SQL> SELECT SUBSTR(comp_name, 1, 30) comp_name, SUBSTR(version, 1, 20) version, status
+  2    FROM dba_registry
+  3   ORDER BY comp_name;
+
+COMP_NAME                      VERSION              STATUS
+------------------------------ -------------------- ---------------
+JServer JAVA Virtual Machine   19.0.0.0.0           VALID
+OLAP Analytic Workspace        19.0.0.0.0           VALID
+OLAP Catalog                   11.2.0.3.0           OPTION OFF
+Oracle Application Express     21.1.0               VALID
+Oracle Database Catalog Views  19.0.0.0.0           VALID
+Oracle Database Java Packages  19.0.0.0.0           INVALID
+Oracle Database Packages and T 19.0.0.0.0           VALID
+Oracle Multimedia              19.0.0.0.0           VALID
+Oracle OLAP API                19.0.0.0.0           VALID
+Oracle Real Application Cluste 19.0.0.0.0           VALID
+Oracle Text                    19.0.0.0.0           VALID
+Oracle XDK                     19.0.0.0.0           VALID
+Oracle XML Database            19.0.0.0.0           VALID
+Spatial                        19.0.0.0.0           VALID
+
+14 rows selected.
+
+SQL> 
+SQL> ------ REGISTRY HISTORY -------
+SQL> 
+SQL> SELECT TO_CHAR(action_time, 'DD-MON-YYYY HH24:MI:SS') act_time, action, version, id, comments
+  2  FROM dba_registry_history
+  3  ORDER BY action_time DESC;
+
+ACT_TIME                 ACTION          VERSION                      ID COMMENTS
+------------------------ --------------- -------------------- ---------- --------------------
+                         BOOTSTRAP       19                              RDBMS_19.26.0.0.0DBR
+                                                                         U_LINUX.X64_250117
+
+                         BOOTSTRAP       12.1.0.2                        RDBMS_12.1.0.2.0DBBP
+                                                                         _LINUX.X64_170106
+
+10-MAY-2025 15:18:58     RU_APPLY        19.0.0.0.0                      Patch applied from 1
+                                                                         9.19.0.0.0 to 19.26.
+                                                                         0.0.0: Release_Updat
+                                                                         e - 250118124854
+
+10-MAY-2025 15:06:30     APPLY           19.26.0.0.250121OJVM          0 OJVM RU post-install
+                                         RU
+
+10-MAY-2025 15:06:30     jvmpsu.sql      19.26.0.0.250121OJVM          0 RAN jvmpsu.sql
+                                         RU
+
+10-MAY-2025 15:06:30     ROLLBACK        19.19.0.0.230418OJVM          0 OJVM RU post-deinsta
+                                         RU                              ll
+
+10-MAY-2025 15:06:30     jvmpsu.sql      19.19.0.0.230418OJVM          0 RAN jvmpsu.sql
+                                         RU
+
+23-SEP-2023 04:10:40     RU_APPLY        19.0.0.0.0                      Patch applied on 19.
+                                                                         19.0.0.0: Release_Up
+                                                                         date - 230322020406
+
+23-SEP-2023 04:03:57     APPLY           19.19.0.0.230418OJVM          0 OJVM RU post-install
+                                         RU
+
+23-SEP-2023 04:03:57     jvmpsu.sql      19.19.0.0.230418OJVM          0 RAN jvmpsu.sql
+                                         RU
+
+23-SEP-2023 03:30:21     RU_APPLY        19.0.0.0.0                      Patch applied from 1
+                                                                         9.14.0.0.0 to 19.19.
+                                                                         0.0.0: Release_Updat
+                                                                         e - 230322020406
+
+23-SEP-2023 03:24:24     APPLY           19.19.0.0.230418OJVM          0 OJVM RU post-install
+                                         RU
+
+23-SEP-2023 03:24:24     jvmpsu.sql      19.19.0.0.230418OJVM          0 RAN jvmpsu.sql
+                                         RU
+
+23-SEP-2023 03:24:23     ROLLBACK        19.19.0.0.230418OJVM          0 OJVM RU post-deinsta
+                                         RU                              ll
+
+23-SEP-2023 03:24:23     jvmpsu.sql      19.19.0.0.230418OJVM          0 RAN jvmpsu.sql
+                                         RU
+
+01-OCT-2022 16:33:17     UPGRADE         19.0.0.0.0                      Upgraded from 12.1.0
+                                                                         .2.0 to 19.14.0.0.0
+
+13-MAR-2022 01:29:37     jvmpsu.sql      12.1.0.2.220118OJVMP          0 RAN jvmpsu.sql
+                                         SU
+
+07-MAY-2021 16:58:31     jvmpsu.sql      12.1.0.2.210119OJVMP          0 RAN jvmpsu.sql
+                                         SU
+
+26-FEB-2020 19:26:02     jvmpsu.sql      12.1.0.2.191015OJVMP          0 RAN jvmpsu.sql
+                                         SU
+
+29-DEC-2015 21:49:46     VIEW INVALIDATE                         8289601 view invalidation
+28-DEC-2015 02:57:07     APPLY           11.2.0.3                      3 Patch 3
+26-NOV-2012 12:22:28     APPLY           11.2.0.3                      1 CPUJan2012
+10-JAN-2012 03:51:20     APPLY           11.2.0.3                      0 Patchset 11.2.0.2.0
+10-JAN-2012 03:50:42     UPGRADE         11.2.0.3.0                      Upgraded from 11.2.0
+                                                                         .2.0
+
+10-JAN-2012 03:50:42     VIEW INVALIDATE                         8289601 view invalidation
+13-DEC-2010 06:04:58     APPLY           11.2.0.2                      0 Patchset 11.2.0.2.0
+13-DEC-2010 06:02:43     UPGRADE         11.2.0.2.0                      Upgraded from 11.1.0
+                                                                         .7.0
+
+13-DEC-2010 06:02:41     VIEW INVALIDATE                         8289601 view invalidation
+22-JAN-2009 04:34:49     UPGRADE         11.1.0.7.0                      Upgraded from 11.1.0
+                                                                         .6.0
+
+26-NOV-2008 23:39:09     UPGRADE         11.1.0.6.0                      Upgraded from 10.2.0
+                                                                         .3.0
+
+23-JAN-2008 16:07:02     CPU             10.2.0.3.0              6079591 CPUJul2007
+
+31 rows selected.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> ------ JAVA OBJECT INFO ------
+SQL> 
+SQL> -- Are there a substantial number of VALID Java objects in SYS?
+SQL> 
+SQL> SELECT owner, object_type, status, COUNT(*)
+  2    FROM dba_objects
+  3   WHERE object_type LIKE '%JAVA%'
+  4   GROUP BY owner, object_type, status
+  5   ORDER BY owner, object_type, status;
+
+OWNER                          OBJECT_TYPE     STATUS            COUNT(*)
+------------------------------ --------------- --------------- ----------
+APPS                           JAVA CLASS      VALID                  593
+APPS                           JAVA RESOURCE   VALID                    2
+APPS                           JAVA SOURCE     VALID                    5
+MDSYS                          JAVA CLASS      VALID                 2905
+MDSYS                          JAVA RESOURCE   VALID                   51
+MGDSYS                         JAVA CLASS      VALID                   27
+MGDSYS                         JAVA RESOURCE   VALID                    2
+OJVMSYS                        JAVA DATA       VALID                    1
+SYS                            JAVA CLASS      INVALID                  1
+SYS                            JAVA CLASS      VALID                35295
+SYS                            JAVA DATA       VALID                 1210
+SYS                            JAVA RESOURCE   VALID                 1762
+SYS                            JAVA SOURCE     VALID                    2
+
+13 rows selected.
+
+SQL> 
+SQL> -- Is the DBMS_JAVA package VALID?
+SQL> 
+SQL> SELECT owner, object_name, object_type, status
+  2    FROM dba_objects
+  3   WHERE object_name LIKE 'DBMS_JAVA%'
+  4      OR object_name LIKE '%INITJVMAUX%'
+  5   ORDER BY owner, object_name, object_type;
+
+OWNER                          OBJECT_NAME                    OBJECT_TYPE     STATUS
+------------------------------ ------------------------------ --------------- ---------------
+PUBLIC                         DBMS_JAVA                      SYNONYM         VALID
+PUBLIC                         DBMS_JAVASCRIPT                SYNONYM         VALID
+PUBLIC                         DBMS_JAVA_DUMP                 SYNONYM         VALID
+PUBLIC                         DBMS_JAVA_TEST                 SYNONYM         VALID
+SYS                            DBMS_JAVA                      PACKAGE         VALID
+SYS                            DBMS_JAVA                      PACKAGE BODY    VALID
+SYS                            DBMS_JAVASCRIPT                PACKAGE         VALID
+SYS                            DBMS_JAVASCRIPT                PACKAGE BODY    VALID
+SYS                            DBMS_JAVA_DEFINERS             PACKAGE         VALID
+SYS                            DBMS_JAVA_DEFINERS             PACKAGE BODY    VALID
+SYS                            DBMS_JAVA_DUMP                 PACKAGE         VALID
+SYS                            DBMS_JAVA_DUMP                 PACKAGE BODY    VALID
+SYS                            DBMS_JAVA_MISC                 PACKAGE         VALID
+SYS                            DBMS_JAVA_MISC                 PACKAGE BODY    VALID
+SYS                            DBMS_JAVA_TEST                 PACKAGE         VALID
+SYS                            DBMS_JAVA_TEST                 PACKAGE BODY    VALID
+SYS                            INITJVMAUX                     PACKAGE         VALID
+SYS                            INITJVMAUX                     PACKAGE BODY    VALID
+
+18 rows selected.
+
+SQL> 
+SQL> -- Are there any INVALID Java objects in SYS?
+SQL> 
+SQL> SELECT owner, NVL(longdbcs,object_name) long_name, object_type, status
+  2    FROM dba_objects, sys.javasnm$
+  3   WHERE object_type LIKE '%JAVA%'
+  4     AND status <> 'VALID'
+  5     AND short (+) = object_name
+  6   ORDER BY owner, long_name, object_type;
+
+OWNER                          LONG_NAME                                                                   OBJECT_TYPE     STATUS
+------------------------------ --------------------------------------------------------------------------- --------------- ---------------
+SYS                            oracle/jms/AQjmsQueueConnectionFactory                                      JAVA CLASS      INVALID
+
+SQL> 
+SQL> ------ JAVA ROLE INFO ------
+SQL> 
+SQL> -- The number expected varies by release.
+SQL> 
+SQL> SELECT role
+  2    FROM dba_roles
+  3   WHERE role LIKE '%JAVA%'
+  4   ORDER BY role;
+
+ROLE
+----------------------------------------
+DBJAVASCRIPT
+JAVADEBUGPRIV
+JAVAIDPRIV
+JAVASYSPRIV
+JAVAUSERPRIV
+JAVA_ADMIN
+JAVA_DEPLOY
+
+7 rows selected.
+
+SQL> 
+SQL> ------ MEMORY INFO ------
+SQL> 
+SQL> SELECT *
+  2    FROM v$sgastat
+  3   WHERE pool = 'java pool' OR name = 'free memory'
+  4   ORDER BY pool, name;
+
+POOL           NAME                            BYTES     CON_ID
+-------------- -------------------------- ---------- ----------
+java pool      JOXLE                        52161984          3
+java pool      free memory                 499309312          0
+java pool      joxs heap                     1665216          3
+large pool     free memory                  77312000          0
+numa pool      free memory                 723216128          0
+shared pool    free memory                6291065672          0
+streams pool   free memory                 268418176          0
+
+7 rows selected.
+
+SQL> 
+SQL> ------ DATABASE PARAMETER INFO ------
+SQL> 
+SQL> show parameter pool_size
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+java_pool_size                       big integer 0
+large_pool_size                      big integer 0
+memoptimize_pool_size                big integer 0
+olap_page_pool_size                  big integer 0
+shared_pool_size                     big integer 0
+streams_pool_size                    big integer 0
+SQL> 
+SQL> show parameter target
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+archive_lag_target                   integer     0
+db_big_table_cache_percent_target    string      0
+db_flashback_retention_target        integer     1440
+fast_start_io_target                 integer     0
+fast_start_mttr_target               integer     300
+memory_max_target                    big integer 0
+memory_target                        big integer 0
+parallel_servers_target              integer     44
+pga_aggregate_target                 big integer 15G
+sga_target                           big integer 50G
+target_pdbs                          integer     120
+SQL> 
+SQL> show parameter sga
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+allow_group_access_to_sga            boolean     FALSE
+lock_sga                             boolean     FALSE
+pre_page_sga                         boolean     TRUE
+sga_max_size                         big integer 60G
+sga_min_size                         big integer 0
+sga_target                           big integer 50G
+unified_audit_sga_queue_size         integer     1048576
+SQL> 
+SQL> ------ TEST JAVAVM USAGE (and return the JDK version if > 11g) ------
+SQL> 
+SQL> -- Calling routines in DBMS_JAVA will invoke the JavaVM and expose certain problems.
+SQL> 
+SQL> SET SERVEROUTPUT ON
+SQL> DECLARE
+  2    ver NUMBER := 0;
+  3    val VARCHAR2(30);
+  4  BEGIN
+  5    BEGIN
+  6      SELECT TO_NUMBER( SUBSTR(version, 1, 2) )
+  7        INTO ver
+  8        FROM dba_registry
+  9       WHERE comp_name = 'JServer JAVA Virtual Machine';
+ 10    EXCEPTION
+ 11      WHEN OTHERS THEN NULL;
+ 12    END;
+ 13  
+ 14    IF ver >= 12 THEN
+ 15      EXECUTE IMMEDIATE
+ 16                'SELECT ''JDK version is '' ||
+ 17                        dbms_java.get_jdk_version() FROM dual'
+ 18              INTO val;
+ 19    ELSE
+ 20      val := dbms_java.longname('JDK version not available');
+ 21    END IF;
+ 22    dbms_output.put_line(val);
+ 23  END;
+ 24  /
+JDK version is 1.8.0_441
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> spool off
