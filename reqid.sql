@@ -1,0 +1,1 @@
+select f.request_id "Request Id" ,s.sid "Database Session ID",f.oracle_process_id "Database OS Process",s.process "Concurrent OS Process" from v$session s,apps.fnd_concurrent_requests f where f.os_process_id=s.process and  request_id='&request_id';
