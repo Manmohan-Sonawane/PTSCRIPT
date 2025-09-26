@@ -1,0 +1,31 @@
+Useful Scripts related to Editioned Database in Oracle Apps
+There are a number of SQL*Plus scripts that can provide useful information about the state of your editioned database environment. All ADZD* scripts are found under $AD_TOP/sql.
+
+ADZDDBCC - the database compliance checker, shows violations of the database object development standards. Warning: this script takes a long time to run.
+ADZDSHOWED - Show database editions and current editions.
+ADZDSHOWLOG - Show full diagnostic log for online patching infrastructure.
+ADZDSHOWLOGEVT - Show only event and error messages from the online patching diagnostic log (a useful summary, without the detailed statement text).
+ADZDSHOWLOGERR - Show only error messages from online patching diagnostic log.
+ADZDSHOWEV TABLE_SYNONYM_NAME - Show editioning view column mapping for the table.
+ADZDSHOWTAB TABLE_SYNONYM_NAME - Show table information and related objects.
+ADZDSHOWMV MVIEW_NAME - Show materialized view information and related objects.
+ADZDSHOWTS - Show important tablespace status. Ensure that you have enough SYSTEM tablespace.
+ADZDCMPED - Compare Patch Edition with Run Edition. Warning: this script may take a long time to run.
+ADZDSHOWDDLS - Show stored DDL summary by phase.
+ADZDALLDDLS - Show stored DDL statement text.
+ADZDDDLERROR - Show stored DDL execution errors and messages.
+adutlrcmp - Recompile all objects, with before/after the status report. Warning: this script may take a long time to run.
+
+
+ADZDSHOWOBJS - Show Object Summary per edition. Counts of actual and stub (inherited) editioned object per edition.
+ADZDSHOWAOBJS - Show Actual Objects in the current edition. These are the editioned objects that have been changed by the patch.
+ADZDSHOWIOBJS - Show Inherited Objects in the current edition. These are the editioned objects that remain untouched in the patch edition. This script is used to confirm that the adop actualize_all command has worked properly.
+
+ADZDSHOWCOBJS - Show Covered Object Summary per edition. Count of objects in old editions that have a replacement in the run edition. This script is used to confirm that the adop cleanup command has worked properly.
+ADZDSHOWCOBJX - Show Covered Object List. List of objects in old editions that have a replacement in the run edition.
+ADZDSHOWSM - Show Seed Manager status.
+ADZDSHOWTM - Show Table Manager status.
+ADZDSHOWAD - AD (online patching) database object status
+ADZDSHOWSES - Show sessions connected to the database (by edition).
+ADZDSHOWDEP OBJECT_NAME - Show objects that OBJECT_NAME depends on.
+ADZDSHOWDEPTREE OBJECT_NAME - Show the full dependency tree of objects that OBJECT_NAME depends on.
