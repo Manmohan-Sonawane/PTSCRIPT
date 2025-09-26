@@ -1,0 +1,43 @@
+Login to Oracle EBS as an Administrator.
+
+Navigate to System Administrator responsibility.
+
+Go to Profiles > System.
+
+In the Find Profile Values window, search for the profile option called
+
+FND: Diagnostics  ----->YES
+Hide Diagnostics menu entry   -----> NO
+Utilities:Diagnostics     ---------> YES
+
+
+this will allow user to enable the trace from thair end. 
+
+Go to help option 
+Diagnostil > tracle with bind verible (last option ) 
+
+To take TKprof user below command:- 
+
+tkprof <CDBPREP_ora_13848_MUKIT_0202_210945.trc> <CDBPREP_ora_13848_MUKIT_0202_210945.txt> sort=exeela,fchela,prsela;
+
+
+
+
+If we have only conc request no then 
+
+
+SQL> select oracle_process_id from apps.fnd_concurrent_requests where REQUEST_ID='57716167';
+
+	ORACLE_PROCESS_ID
+------------------------------
+       319495
+
+ls -lrth *269248*
+go to trace location 
+
+/ebsbfix/oracle/EBSBFIX/diag/rdbms/cdbbfix/CDBBFIX/trace
+[ebsbfixora@hildb01 trace]$ ls -lrt *176880*
+
+-rw-r----- 1 ebsbfixora oinstall  19734195 Aug 10 15:19 EBSBFIX_ora_269248_APPS_0810_142853.trm
+
+-rw-r----- 1 ebsbfixora oinstall 491292730 Aug 10 15:19 EBSBFIX_ora_269248_APPS_0810_142853.trc
