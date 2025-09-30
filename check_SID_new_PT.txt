@@ -1,0 +1,75 @@
+Req ID :- 
+
+
+cd $APPLCSF
+
+grep -i *169084492* FNDOPP*
+[ebsapp@ebsapp01 log]$ ls -lrt *169084492*
+-rw-r--r-- 1 ebsapp oinstall 919 Sep 30 10:14 l169084492.req
+
+
+
+[ebsapp@ebsapp01 log]$ ps -ef | grep 169084492
+ebsapp   2553303 2194558  8 10:14 ?        00:13:32 /ebsprod/oracle/EBSPRD/fs2/EBSapps/10.1.2/bin/rwrun P_CONC_REQUEST_ID=169084492 P                                _QUALIFIER='R' p_order_book_date_low='13-Jun-2023' p_order_book_date_high='31-MAR-2026' report=/ebsprod/oracle/EBSPRD/fs2/EBSapps/app                                l/xxhil/12.0.0/reports/US/XXHIL_OM_SOS.rdf userid=APPS batch=yes destype=file desname=/ebsprodlog/oracle/EBSPRD/conc/out/o169084492.x                                ml desformat=XML
+ebsapp   3109482 3016974  0 13:00 pts/4    00:00:00 grep --color=auto 169084492
+
+
+[ebsapp@ebsapp01 log]$ ps -ef | grep 2194558
+ebsapp   2194558       1  0 Sep26 ?        00:02:19 FNDLIBR                                                                                                          
+ebsapp   2553303 2194558  8 10:14 ?        00:14:03 /ebsprod/oracle/EBSPRD/fs2/EBSapps/10.1.2/bin/rwrun P_CONC_REQUEST_ID=169084492 P_QUALIFIER='R' p_order_book_date_low='13-Jun-2023' p_order_book_date_high='31-MAR-2026' report=/ebsprod/oracle/EBSPRD/fs2/EBSapps/appl/xxhil/12.0.0/reports/US/XXHIL_OM_SOS.rdf userid=APPS batch=yes destype=file desname=/ebsprodlog/oracle/EBSPRD/conc/out/o169084492.xml desformat=XML
+ebsapp   3118153 3016974  0 13:02 pts/4    00:00:00 grep --color=auto 2194558
+[ebsapp@ebsapp01 log]$
+
+ON DATBASE NODE where query is running :-
+
+
+SQL> @spid
+Enter value for a: 2553303
+
+no rows selected
+
+SQL> @fpid
+Enter value for a: 2553303
+
+                       Status
+LOGONTIME          SID Code   TYPE       USERNAME   OSUSER     MACHINE    PROGINFO                       PROCESS                  SPID                     SQL_HASH_VALUE
+--------------- ------ ------ ---------- ---------- ---------- ---------- ------------------------------ ------------------------ ------------------------ --------------
+09/30 10:14:24    1803 INACTI USER       APPS       ebsapp     ebsapp01   e:XXHIL:cp:xxhil/XXHIL_OM_SOS  2553303                  158054                            0
+                       VE
+
+
+SQL>
+SQL>
+SQL> @sid
+What is the SID : 58
+
+                                  Status
+LOGONTIME          SID    INST_ID Code   TYPE       USERNAME   OSUSER     MACHINE    PROGINFO                       PROCESS                  SPID
+--------------- ------ ---------- ------ ---------- ---------- ---------- ---------- ------------------------------ ------------------------ ------------------------
+SQL_HASH_VALUE
+--------------
+09/30 10:14:23      58          2 INACTI USER       APPS       ebsapp     ebsapp01   e:FND:cp:STANDARD - STANDARD@e 2194558                  286287
+                                  VE
+             0
+
+
+SQL> @sid
+What is the SID : 1803
+
+                                  Status
+LOGONTIME          SID    INST_ID Code   TYPE       USERNAME   OSUSER     MACHINE    PROGINFO                       PROCESS                  SPID
+--------------- ------ ---------- ------ ---------- ---------- ---------- ---------- ------------------------------ ------------------------ ------------------------
+SQL_HASH_VALUE
+--------------
+09/30 10:14:24    1803          1 INACTI USER       APPS       ebsapp     ebsapp01   e:XXHIL:cp:xxhil/XXHIL_OM_SOS  2553303                  158054
+                                  VE
+             0
+
+
+SQL> select event from gv$session where sid=1803;
+
+EVENT
+---------------------------------------------
+SQL*Net message from client
+
+
