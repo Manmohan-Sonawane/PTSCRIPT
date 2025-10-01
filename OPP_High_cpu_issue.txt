@@ -1,0 +1,118 @@
+diagnose the "Root Cause" of OPP (java) consuming High CPU 
+
+
+1. Use top/prstat (find the analogous parameter for your platform) OS command to identify the pid of OPP (java). This is the 
+<pid> of the OPP Java process which consumes High CPU. 
+
+2. Generate the java thread dump. Use the <pid> from step1. This is required to write additional log details in the OPP log which 
+helps us to narrow down the potential cause.
+ $ kill -3 <pid>
+ 
+3. Identify the relevant OPP file (Get absolute Path & file name using below command)
+ $ ps -ef | grep <pid>
+ 
+4. Get the below details to get thread details. Use the <pid> from step1.
+ $ ps -eLo pid,ppid,tid,pcpu,comm | grep <<pid>
+ 
+5. Once we know the “thread id” from step 4, we can find out the report which could be the potential “Root Cause" of OPP (java) 
+to consume High CPU
+
+++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++
+DEMONSTRATION
+
+STEP 1 (top/prstat)   TOOK High cpu consume java prosess from TOP.
+
+We can check the process using spid fpid script. 
+
+
+
+
+STEP 2 (java thread dump)
+ 
+This is required to write additional log details in the current OPP log. To know the name of the log file refer next step.
+$ kill -3 25526
+
+
+STEP 3 (Identify the OPP file name)
+applmgr 25526 1 99 Jun25 ? 8-23:27:31 /u01/product/1013/appsutil/jdk/bin/java -DCLIENT_PROCESSID=25526 -server -Xmx384m -XX:NewRatio=2 -XX:+UseSerialGC -Doracle.apps.fnd.common.Pool.leak.mode=stderr:off -
+verbose:gc -mx2048m -Ddbcfile=/u01/inst/apps/U01_my_apps_server/appl/fnd/12.0.0/secure/U01.dbc -Dcpid=488233 -Dconc_queue_id=6269 -Dqueue_appl_id=0 -
+Dlogfile=/u01/applcsf/log/U01_my_apps_server/FNDOPP488233.txt -DLONG_RUNNING_JVM=true -DOVERRIDE_DBC=true -DFND_JDBC_BUFFER_MIN=1 -DFND_JDBC_BUFFER_MAX=2 
+oracle.apps.fnd.cp.gsf.GSMServiceController
+
+/u01/applcsf/log/U01_my_apps_server/FNDOPP488233.txt
+
+
+STEP 4
+select REQUEST_ID from apps.fnd_concurrent_requests where oracle_process_id='&FNDOPP';
+select REQUEST_ID from apps.fnd_concurrent_requests where oracle_process_id='488233';
+
+STEP 5 (Getting thread details)
+$ ps -eLo pid,ppid,tid,pcpu,comm | grep 25526
+
+25526 1 25680 0.0 java
+25526 1 26005 0.0 java
+25526 1 26016 0.0 java
+25526 1 26019 0.0 java
+25526 1 26020 0.0 java
+25526 1 26021 0.0 java
+25526 1 26045 0.0 java (Ignore these threads ID which are having 0.0)
+25526 1 26046 0.0 java
+25526 1 26974 0.0 java
+25526 1 1289 71.2 java <======= One of The thread ID that is taking High CPU time
+25526 1 27867 70.6 java <======= One of The thread ID that is taking High CPU time
+25526 1 18893 31.6 java
+
+STEP 5 – Identify the potential cause
+1. From step 4 , get the thread id 1289.
+2. Convert the thread id 1289 to Hexadecimal value using any tool. 
+a. For example
+http://www.binaryhexconverter.com/decimal-to-hex-converter
+i. Decimal Value ==> 1289
+ii. Hexadecimal Value ==> 509
+3. Open the OPP log file FNDOPP488233.txt that was identified in “Step 3”.
+4. Do find for string "509" hexadeciamal value you just converted it.
+
+++++++++++++++++++++++++++++
+"488233:RT6083684" daemon prio=10 tid=0x09f83000 nid=0x509 runnable [0x6dbad000]
+java.lang.Thread.State: RUNNABLE
+at oracle.xdo.parser.v2.XSLTContext.reset(XSLTContext.java:346)
+at oracle.xdo.parser.v2.XSLProcessor.processXSL(XSLProcessor.java:285)
+at oracle.xdo.parser.v2.XSLProcessor.processXSL(XSLProcessor.java:155)
+at oracle.xdo.parser.v2.XSLProcessor.processXSL(XSLProcessor.java:192)
+at sun.reflect.GeneratedMethodAccessor34.invoke(Unknown Source)
+at oracle.apps.xdo.oa.schema.server.TemplateHelper.runProcessTemplate(TemplateHelper.java:5978)
+at oracle.apps.xdo.oa.schema.server.TemplateHelper.processTemplate(TemplateHelper.java:3470)
+at oracle.apps.xdo.oa.schema.server.TemplateHelper.processTemplate(TemplateHelper.java:3559)
+at oracle.apps.fnd.cp.opp.XMLPublisherProcessor.process(XMLPublisherProcessor.java:305)
+at oracle.apps.fnd.cp.opp.OPPRequestThread.run(OPPRequestThread.java:184)
+++++++++++++++++++++++++++++
+
+
+5. From the above output take out the string 6083684 which is the Concurrent Request ID.
+
+6. You can now search for 6083684 in OPP log (i.e. FNDOPP488233.txt) again.
+
+7. You should be able to locate the below lines which provides the Template code: CSTRINVR_XML which is the 
+"Root Cause" of OPP to hang or consume high CPU.
+[6/29/15 10:28:18 AM] [OPPServiceThread1] Post-processing request 6083684.
+[6/29/15 10:28:18 AM] [488233:RT6083684] Executing post-processing actions for request 6083684.
+[6/29/15 10:28:18 AM] [488233:RT6083684] Starting XML Publisher post-processing action.
+[6/29/15 10:28:18 AM] [488233:RT6083684] 
+Template code: CSTRINVR_XML
+Template app: BOM
+Language: en
+Territory: US
+Output type: PDF
+
+8. If required, pickup another thread ID (STEP 5) which consumes high CPU, and perform the diagnose the similar 
+way (step 1-7) that helps to identify another Template code: CSTRAIVR_XML 
+[7/1/15 4:09:29 PM] [488233:RT6124449] Starting XML Publisher post-processing action.
+[7/1/15 4:09:29 PM] [488233:RT6124449] 
+Template code: CSTRAIVR_XML
+Template app: BOM
+Language: en
+Territory: US
+Output type: RT
+
+
