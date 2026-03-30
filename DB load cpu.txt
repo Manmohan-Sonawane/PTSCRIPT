@@ -1,0 +1,232 @@
+#check enq%
+select inst_id,sid,event,p1,p2,p3,wait_time,seconds_in_wait from gv$session_wait where event like 'enq%' order by 8 desc
+
+
+
+
+select * from gv$lock where id2=1734664 and lmode=6
+
+
+
+#sid.sql
+
+accept trgtsid number default 0 prompt 'What is the SID : '
+select last_call_ET, to_char(s.logon_time,'mm/dd hh24:mi:ss') logontime,
+       s.sid,s.inst_id,s.status,s.type,s.username,s.osuser,s.machine,
+       s.module || ' - ' || s.program proginfo,
+       s.process,p.spid, s.sql_hash_value
+from gv$session s, gv$process p
+where sid = &trgtsid
+and p.addr = s.paddr;
+
+#blk
+select client_identifier,
+       sql_id,
+       sid,
+       last_call_et,
+       blocking_instance,
+       blocking_session,
+       final_blocking_instance,
+       final_blocking_session,
+       paddr,
+       serial#,
+       username
+from gv$session
+where blocking_session is not null;
+
+
+select
+req.request_id,req.CONCURRENT_PROGRAM_ID,prog.USER_CONCURRENT_PROGRAM_NAME || ' - ' || req.DESCRIPTION,upper(v.ARGUMENT_TEXT),
+(req.ACTUAL_COMPLETION_DATE - req.ACTUAL_START_DATE)*(24*60*60) time_taken,req.ACTUAL_COMPLETION_DATE,req.ACTUAL_START_DATE,req.REQUESTED_START_DATE,
+req.status_code,req.phase_code from fnd_concurrent_requests req, FND_CONC_REQ_SUMMARY_V v,
+fnd_concurrent_programs_tl prog    
+where req.phase_code='C'  and v.REQUEST_ID=req.REQUEST_ID
+and req.CONCURRENT_PROGRAM_ID=prog.CONCURRENT_PROGRAM_ID
+and trunc(req.ACTUAL_START_DATE) >= trunc(sysdate)-10 
+and prog.USER_CONCURRENT_PROGRAM_NAME ='Active Users'
+order by 1 desc
+
+
+
+select req.request_id,req.CONCURRENT_PROGRAM_ID,prog.USER_CONCURRENT_PROGRAM_NAME || ' - ' || req.DESCRIPTION,
+(sysdate - req.ACTUAL_START_DATE)*(24*60) time_taken,sysdate,req.ACTUAL_START_DATE,  
+req.status_code,req.phase_code from fnd_concurrent_requests req, 
+fnd_concurrent_programs_tl prog    
+where req.phase_code='R' and req.status_code='R'
+and req.CONCURRENT_PROGRAM_ID=prog.CONCURRENT_PROGRAM_ID order by time_taken desc
+
+
+
+
+Select fcpp.concurrent_request_id,fcpp.processor_id,v.PROGRAM,
+v.ACTUAL_START_DATE,
+(nvl(v.ACTUAL_COMPLETION_DATE,sysdate)-v.ACTUAL_START_DATE)*(24*60) tt,v.PHASE_CODE,v.STATUS_CODE 
+from fnd_conc_pp_actions fcpp,FND_CONC_REQ_SUMMARY_V v,
+FND_CONCURRENT_REQUESTS r,fnd_concurrent_processes fcp 
+where v.REQUEST_ID=r.REQUEST_ID
+and fcpp.processor_id = fcp.concurrent_process_id (+)
+and fcpp.concurrent_request_id=v.REQUEST_ID
+and v.PHASE_CODE='R'and v.STATUS_CODE='R'
+AND fcpp.action_type = 6
+order by fcpp.processor_id
+
+
+SELECT 'ALTER SYSTEM KILL SESSION ''' || sid || ',' || serial# || '@' || inst_id || ''' IMMEDIATE;'
+FROM   gv$session
+WHERE  status = 'INACTIVE'
+  AND  last_call_et > 1000 * 60          -- > 1000 minutes in seconds
+  AND  username IS NOT NULL
+  AND  type = 'USER'
+  AND  program NOT LIKE '%(P%'           -- exclude PMON, SMON, etc.
+  AND  sid <> (SELECT sid FROM v$mystat WHERE rownum = 1)  -- don't kill yourself
+/
+
+
+
+select distinct(r.request_id),to_char(r.actual_start_date, 'DD-MON-YY HH24:MI:SS') start_time,u.user_name,p.user_concurrent_program_name,r.argument_text,r.phase_code,r.status_code from
+apps.fnd_concurrent_programs_vl p, apps.fnd_concurrent_requests r, apps.fnd_concurrent_requests b, apps.fnd_user u
+where p.concurrent_program_id = r.concurrent_program_id
+and p.application_id = r.program_application_id
+and r.phase_code = 'R' -- and r.status_code = 'R'
+and r.argument_text = b.argument_text
+and r.requested_by = u.user_id
+and r.request_id <> b.request_id
+and REQUEST_SET_FLAG='N'
+and  r.actual_start_date >= sysdate-30 order by r.argument_text;
+
+#concurrent program
+SELECT manager,SID,sql_id,program,(SELECT 'FTS' FROM v$session_longops WHERE totalwork<>sofar AND SID=tt.SID 
+AND ROWNUM=1) SCAN,reqby,request_id,USER_CONCURRENT_PROGRAM_NAME, time_taken FROM 
+( 
+SELECT NVL((SELECT fcq.USER_CONCURRENT_QUEUE_NAME 
+FROM FND_CONCURRENT_QUEUES_VL fcq, fnd_concurrent_queue_content fcqc 
+WHERE fcq.APPLICATION_ID=fcqc.QUEUE_APPLICATION_ID 
+AND fcq.CONCURRENT_QUEUE_ID=fcqc.CONCURRENT_QUEUE_ID 
+--AND fcq.CONCURRENT_QUEUE_ID IN (1121,1122,10,1101,1178) 
+AND fcqc.include_flag='I' AND  fcqc.TYPE_ID=prog.CONCURRENT_PROGRAM_ID 
+AND ROWNUM=1 ),'Standard Manager') Manager , 
+(  SELECT SID FROM v$session WHERE paddr=( 
+SELECT addr FROM v$process WHERE spid =( 
+SELECT t.ORACLE_PROCESS_ID FROM fnd_concurrent_requests  t WHERE request_id=req.request_id))) SID, 
+(  SELECT sql_id FROM v$session WHERE paddr=( 
+SELECT addr FROM v$process WHERE spid =( 
+SELECT t.ORACLE_PROCESS_ID FROM fnd_concurrent_requests  t WHERE request_id=req.request_id))) sql_id, 
+(  SELECT program FROM v$session WHERE paddr=( 
+SELECT addr FROM v$process WHERE spid =( 
+SELECT t.ORACLE_PROCESS_ID FROM fnd_concurrent_requests  t WHERE request_id=req.request_id))) program, 
+(SELECT REQUESTOR FROM FND_CONC_REQ_SUMMARY_V WHERE 
+REQUEST_ID=req.request_id) REQBY,req.request_id,prog.USER_CONCURRENT_PROGRAM_NAME, 
+(SYSDATE - req.ACTUAL_START_DATE)*(24*60) time_taken,SYSDATE,req.ACTUAL_START_DATE, 
+req.status_code,req.phase_code FROM fnd_concurrent_requests req, 
+fnd_concurrent_programs_tl prog WHERE req.phase_code='R' and req.status_code='R' and --req.request_id in ('97752124') AND 
+req.CONCURRENT_PROGRAM_ID=prog.CONCURRENT_PROGRAM_ID ORDER BY TIME_TAKEN DESC,Manager ) TT
+
+
+#temp used
+SELECT S.username USER_NAME,S.sid SID,S.serial# SERIAL,s.sql_id, S.osuser OS_USER, P.spid UNIX_PID,P.PROGRAM, s.module,
+SUM (T.blocks) * TBS.block_size / 1024 / 1024 TEMP_USED_MB, T.TABLESPACE,COUNT(*) STATEMENTS
+FROM v$sort_usage T, v$session S, (select value block_size from v$parameter where name = 'db_block_size') TBS, v$process P
+WHERE T.session_addr = S.saddr
+AND S.paddr = P.addr --and (s.module like '%oracle.apps.wf.notification.send%' or s.module like '%WFMLRSVC%')
+GROUP BY S.sid, S.serial#, S.username, S.osuser, P.spid,s.sql_id, S.module,P.program, TBS.block_size, T.tablespace
+having (SUM (T.blocks) * TBS.block_size / 1024 / 1024) > 1
+ORDER BY TEMP_USED_MB desc;
+
+
+#duplicate req by Ratan 
+Select v.REQUESTOR, v.PROGRAM,upper(v.ARGUMENT_TEXT), count(*) "No of Requests"
+from FND_CONC_REQ_SUMMARY_V v, FND_CONCURRENT_REQUESTS r 
+where v.PHASE_CODE='R'and v.STATUS_CODE='R'-- in ('Q','I','P') --or REQUEST_ID in (323321036,323320404,323316572,323316026)) 
+and v.REQUEST_ID=r.REQUEST_ID
+--and v.RESPONSIBILITY_APPLICATION_ID=1
+--and v.PROGRAM='Hindalco Shipment Report For All Locations-GST' --and v.ARGUMENT_TEXT like ', , 01-feb-2018, 28-feb-2018, C, DOMESTIC, EAST, ,%'--, , , Y, N,%'
+group by v.REQUESTOR,v.PROGRAM,upper(v.ARGUMENT_TEXT)
+having count(*) > 1
+--order by v.ACTUAL_START_DATE desc
+
+
+#conc_program
+SELECT r.request_id reqid,
+       TO_CHAR(r.actual_start_date, 'DD-MON-YY HH24:MI:SS') start_time,
+       u.user_name,
+       r.phase_code phase,
+       r.status_code status,
+       FLOOR(((SYSDATE - r.actual_start_date)*24*60*60)/3600) hrs,
+       FLOOR((((SYSDATE - r.actual_start_date)*24*60*60) - FLOOR(((SYSDATE - r.actual_start_date)*24*60*60)/3600)*3600)/60) mins,
+       ROUND((((SYSDATE - r.actual_start_date)*24*60*60) - FLOOR(((SYSDATE - r.actual_start_date)*24*60*60)/3600)*3600 - (FLOOR((((SYSDATE - r.actual_start_date)*24*60*60) - FLOOR(((SYSDATE - r.actual_start_date)*24*60*60)/3600)*3600)/60)*60))) secs,
+       (SYSDATE - r.actual_start_date)*24*60 tot_mins,
+       DECODE(p.user_concurrent_program_name,
+              'Request Set Stage', 'RSS - ' || r.description,
+              'Report Set', 'RS - ' || r.description,
+              p.user_concurrent_program_name) program_name,
+       s.sid,
+       s.serial#
+FROM   gv$session s,
+       apps.fnd_user u,
+       apps.fnd_concurrent_processes pr,
+       apps.fnd_concurrent_programs_vl p,
+       apps.fnd_concurrent_requests r
+WHERE  s.process = pr.os_process_id
+AND    pr.concurrent_process_id = r.controlling_manager
+AND    r.phase_code = 'R'
+AND    r.status_code = 'R'
+AND    r.requested_by = u.user_id
+AND    p.concurrent_program_id = r.concurrent_program_id
+AND    p.user_concurrent_program_name = '&PROGRAM_NAME'
+ORDER BY r.request_id
+/
+
+
+
+#running_conc
+select r.request_id reqid,
+ to_char(r.actual_start_date, 'DD-MON-YY HH24:MI:SS') start_time,
+ u.user_name,
+ r.phase_code phase,
+ r.status_code status,
+ floor(((SYSDATE - r.actual_start_date)*24*60*60)/3600) hrs,
+ floor((((SYSDATE - r.actual_start_date)*24*60*60) - floor(((SYSDATE - r.actual_start_date)*24*60*60)/3600)*3600)/60) mins,
+ round((((SYSDATE - r.actual_start_date)*24*60*60) - floor(((SYSDATE - r.actual_start_date)*24*60*60)/3600)*3600 - (floor((((SYSDATE - r.actual_start_date)*24*60*60) - floor(((SYSDATE - r.actual_start_date)*24*60*60)/3600)*3600)/60)*60) )) secs,
+ (SYSDATE - r.actual_start_date)*24*60 Tot_Mins,
+ /* p.concurrent_program_id progid,*/
+ decode(p.user_concurrent_program_name,
+        'Request Set Stage', 'RSS - '||r.description,
+        'Report Set', 'RS - '||r.description,
+        p.user_concurrent_program_name ) program_name,
+        s.sid, s.serial#
+ from   gv$session s,
+        apps.fnd_user u,
+        apps.fnd_concurrent_processes pr,
+        apps.fnd_concurrent_programs_vl p,
+        apps.fnd_concurrent_requests r
+ where s.process = pr.os_process_id
+ and pr.concurrent_process_id = r.controlling_manager
+ and r.phase_code = 'R' and r.status_code = 'R'
+ and r.requested_by = u.user_id
+ and p.concurrent_program_id = r.concurrent_program_id
+ order by 9 DESC;
+
+select * from v$sql where sql_ID='7hf90yamvcmkn';
+
+select * from v$sql where sql_ID='gqyppaymtvbsb';
+
+MODULE like'%rwrun@ebsapp01%';
+
+
+
+
+ SELECT TO_CHAR(s.logon_time,'MM/DD HH24:MI:SS') AS logontime,
+        s.sid,
+        s.status,
+        s.type,
+        s.username,
+        s.osuser,
+        s.machine,
+        s.module || ' - ' || s.program AS proginfo,
+        s.process,
+        p.spid,
+        s.sql_hash_value
+ FROM gv$session s
+ JOIN gv$process p
+   ON p.addr = s.paddr
+ WHERE (s.module || ' - ' || s.program) LIKE '%rwrun@ebsapp01%';
